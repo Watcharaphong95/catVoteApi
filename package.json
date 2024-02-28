@@ -8,7 +8,7 @@
     "watch": "tsc -w",
     "dev":"nodemon",
     "build": "tsc",
-    "start": "npx ts-node server.ts "
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
