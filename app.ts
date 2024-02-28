@@ -1,6 +1,7 @@
-import express from "express"
+import express from "express";
 import { router as index } from "./api/index";
 import { router as cat_user } from "./api/cat_user";
+import cors from "cors";
 
 export const app = express();
 
@@ -8,6 +9,10 @@ export const app = express();
 //     res.send("Hello World");
 // });
 
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.use("/", index);
 app.use("/user", cat_user);
-// HHHHHHH
