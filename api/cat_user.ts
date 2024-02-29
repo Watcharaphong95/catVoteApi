@@ -66,7 +66,7 @@ router.post("/", (req, res) => {
     if (err) throw err;
     if (result != "") {
       res
-      .status(400)
+      .status(200)
       .json({ response: false, status: "Email already been used" });
     } else {
       conn.query(sql, (err, result) => {
