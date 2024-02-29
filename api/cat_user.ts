@@ -171,34 +171,42 @@ router.get("/:id", (req, res) => {
 // Post register
 router.post("/", (req, res) => {
   let userDetail: UserPostResponse = req.body;
-  let sql =
-    "INSERT INTO `cat_user`(`username`, `email`, `password`) VALUES (?,?,?)";
-  sql = mysql.format(sql, [
-    userDetail.username,
-    userDetail.email,
-    userDetail.password,
-  ]);
+  if (
+    userDetail.username != null &&
+    userDetail.email != null &&
+    userDetail.password != null
+  ) {
+    let sql =
+      "INSERT INTO `cat_user`(`username`, `email`, `password`) VALUES (?,?,?)";
+    sql = mysql.format(sql, [
+      userDetail.username,
+      userDetail.email,
+      userDetail.password,
+    ]);
 
-  let sqlCheck = "SELECT * FROM cat_user WHERE email = ?";
-  sqlCheck = mysql.format(sqlCheck, [userDetail.email]);
+    let sqlCheck = "SELECT * FROM cat_user WHERE email = ?";
+    sqlCheck = mysql.format(sqlCheck, [userDetail.email]);
 
-  conn.query(sqlCheck, (err, result) => {
-    if (err) throw err;
-    if (result != "") {
-      res
-        .status(200)
-        .json({ response: false, status: "Email already been used" });
-    } else {
-      conn.query(sql, (err, result) => {
-        if (err) throw err;
-        res.status(201).json({
-          response: true,
-          affected_row: result.affectedRows,
-          last_idx: result.insertId,
+    conn.query(sqlCheck, (err, result) => {
+      if (err) throw err;
+      if (result != "") {
+        res
+          .status(200)
+          .json({ response: false, status: "Email already been used" });
+      } else {
+        conn.query(sql, (err, result) => {
+          if (err) throw err;
+          res.status(201).json({
+            response: true,
+            affected_row: result.affectedRows,
+            last_idx: result.insertId,
+          });
         });
-      });
-    }
-  });
+      }
+    });
+  }else{
+    res.status(500).json({response: true, status: "Fill not complete"});
+  }
 });
 
 // UPDATE // PUT edit profile
