@@ -70,7 +70,7 @@ router.post(
         const fileUrl = userDetailOriginal.avatar;
         const fileRef = ref(storage, fileUrl);
 
-        deleteObject(fileRef)
+        deleteObject(fileRef);
       }
 
       const updateUser = { ...userDetailOriginal, ...userDetail };
@@ -138,12 +138,18 @@ router.get("/login/:email/:password", async (req, res) => {
   const result = await queryAsync(sql);
   const jsonStr = JSON.stringify(result);
   const jsonObj = JSON.parse(jsonStr);
-  // res.json(jsonObj[0].password);
-
-  if(password == jsonObj[0].password){
-    res.status(200).json({response: true, status: "Login Success"})
-  }else{
-    res.status(200).json({response: false, status: "Wrong email or password"})
+  if (result != "") {
+    if (password == jsonObj[0].password) {
+      res.status(200).json({ response: true, status: "Login Success" });
+    } else {
+      res
+        .status(200)
+        .json({ response: false, status: "Wrong email or password" });
+    }
+  } else {
+    res
+      .status(200)
+      .json({ response: false, status: "Wrong email or password" });
   }
 });
 
