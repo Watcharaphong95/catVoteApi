@@ -11,7 +11,11 @@ router.get("/", (req, res) => {
 
   conn.query(sql, (err, result) => {
     if (err) throw err;
-    res.status(200).json(result);
+    if (result != "") {
+        res.status(200).json({ result, response: true });
+      } else {
+        res.status(400).json({ response: false });
+      }
   });
 });
 
@@ -24,7 +28,11 @@ router.get("/:uid", (req, res) => {
 
   conn.query(sql, (err, result) => {
     if (err) throw err;
-    res.status(200).json({ result });
+    if (result != "") {
+        res.status(200).json({ result, response: true });
+      } else {
+        res.status(400).json({ response: false });
+      }
   });
 });
 
@@ -45,8 +53,6 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
-import { PicturePostResponse } from "../model/picturePostResponse";
-import { UserPostResponseForUID } from "../model/userPostResponse";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();
@@ -95,7 +101,9 @@ router.post(
         });
         ////////////////////////////////////////////////
         res.status(201).json({
-          filename: url,
+            response: true,
+            statis: 'Upload complete',
+            filename: url,
         });
       } catch (error) {
         console.log(error);
