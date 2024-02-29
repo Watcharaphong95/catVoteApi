@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
 // Get record where pid and order by date all time
 router.get("/:pid", (req, res) => {
     const pid = req.params.pid;
-    let sql = 'SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE r_pid = ? GROUP BY r_pid, DATE(date);';
+    let sql = 'SELECT * FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE r_pid = ? GROUP BY r_pid, DATE(date));';
     sql = mysql.format(sql, [
         pid,
         pid,
