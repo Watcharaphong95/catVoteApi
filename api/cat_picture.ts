@@ -54,6 +54,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import { PicturePostResponse } from "../model/picturePostResponse";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();
@@ -73,6 +74,11 @@ router.post(
   "/upload/:email",
   fileUpload.diskLoader.single("file"),
   async (req, res) => {
+    if (!req.file) {
+      return res
+        .status(500)
+        .json({ response: false, status: "No file Uploaded" });
+    }
     const email = req.params.email;
     // select for img limit
     let sqlCheck =
@@ -118,6 +124,7 @@ router.post(
   }
 );
 
+// delete in cat_pic where pid
 router.delete("/delete/:pid", async (req, res) => {
   const pid = req.params.pid;
   let sql = "SELECT picture FROM cat_picture WHERE pid = ?";
@@ -129,12 +136,10 @@ router.delete("/delete/:pid", async (req, res) => {
     const fileUrl = jsonObj[0].picture;
     const fileRef = ref(storage, fileUrl);
 
-    let sql = 'DELETE FROM cat_picture WHERE pid = ?';
-    sql = mysql.format(sql, [
-        pid,
-    ]);
+    let sql = "DELETE FROM cat_picture WHERE pid = ?";
+    sql = mysql.format(sql, [pid]);
     conn.query(sql, (err, result) => {
-        if(err) throw err;
+      if (err) throw err;
     });
 
     deleteObject(fileRef)
@@ -149,6 +154,90 @@ router.delete("/delete/:pid", async (req, res) => {
           .json({ response: false, status: "Fail to delete file" });
       });
   } else {
-    res.status(500).json({response: false, status: "No picture found"});
+    res.status(500).json({ response: false, status: "No picture found" });
   }
+});
+
+// change pic (delete file in firebase then upload new one and change in
+// database and delete all record in cat_pic_record where r_pid = change pic(pid))
+router.post(
+  "/change/:pid",
+  fileUpload.diskLoader.single("file"),
+  async (req, res) => {
+    if (!req.file) {
+      return res
+        .status(500)
+        .json({ response: false, status: "No file Uploaded" });
+    }
+    try {
+      const filename = Math.round(Math.random() * 10000) + ".png";
+      const storageRef = ref(storage, "/images/" + filename);
+      const metaData = { contentType: req.file!.mimetype };
+      const snapshot = await uploadBytesResumable(
+        storageRef,
+        req.file!.buffer,
+        metaData
+      );
+      const url = await getDownloadURL(snapshot.ref);
+
+      ////////////////////////
+      const pid = req.params.pid;
+      const picDetail: Partial<PicturePostResponse> = {
+        picture: url,
+      };
+      let sql = "select * from cat_picture where pid = ?";
+      sql = mysql.format(sql, [pid]);
+      const result = await queryAsync(sql);
+      const jsonStr = JSON.stringify(result);
+      const jsonObj = JSON.parse(jsonStr);
+      const picDetailOriginal: PicturePostResponse = jsonObj[0];
+      if (picDetailOriginal.picture != null) {
+        // res.json(updateUser.avatar);
+        const fileUrl = picDetailOriginal.picture;
+        const fileRef = ref(storage, fileUrl);
+
+        deleteObject(fileRef);
+      }
+
+      const updatePic = { ...picDetailOriginal, ...picDetail };
+      // res.json(updateUser.avatar);
+
+      sql =
+        "update `cat_picture` set `p_uid`=?, `picture`=?";
+      // res.json(updateUser);
+      sql = mysql.format(sql, [
+        updatePic.p_uid,
+        updatePic.picture
+      ]);
+
+      conn.query(sql, (err, result) => {
+        if (err) throw err;
+      });
+
+      sql = 'DELETE FROM cat_pic_record WHERE r_pid = ?';
+      sql = mysql.format(sql, [
+        updatePic.p_uid,
+      ]);
+      conn.query(sql, (err, result) => {
+        if(err) throw err;
+      });
+      ////////////////////////////////////////////
+      res.status(200).json({
+        filename: url,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ response: false, status: "Failed to upload" });
+    }
+  }
+);
+
+// Get random pid for main page to vote
+router.get("/random/forvote", (req, res) => {
+    let sql = 'select * FROM cat_picture ORDER BY RAND() LIMIT 2';
+    
+    conn.query(sql, (err, result) => {
+        if(err) throw err;
+        res.json({response: true, result})
+    });
 });

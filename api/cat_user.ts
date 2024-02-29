@@ -39,10 +39,16 @@ class FileMiddleware {
 }
 
 const fileUpload = new FileMiddleware();
+// POST avatar and replace and delete in firebase
 router.post(
   "/avatar/upload/:email",
   fileUpload.diskLoader.single("file"),
   async (req, res) => {
+    if (!req.file) {
+      return res
+        .status(500)
+        .json({ response: false, status: "No file Uploaded" });
+    }
     try {
       const filename = Math.round(Math.random() * 10000) + ".png";
       const storageRef = ref(storage, "/images/" + filename);
@@ -204,8 +210,8 @@ router.post("/", (req, res) => {
         });
       }
     });
-  }else{
-    res.status(500).json({response: true, status: "Fill not complete"});
+  } else {
+    res.status(500).json({ response: true, status: "Fill not complete" });
   }
 });
 
