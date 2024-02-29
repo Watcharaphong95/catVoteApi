@@ -22,6 +22,7 @@ import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
+  deleteObject,
 } from "firebase/storage";
 
 initializeApp(firebaseConfig);
@@ -56,18 +57,28 @@ router.post(
       ////////////////////////
       const email = req.params.email;
       const userDetail: Partial<UserPostResponse> = {
-        avatar: url
-      }
+        avatar: url,
+      };
       let sql = "select * from cat_user where email = ?";
       sql = mysql.format(sql, [email]);
       const result = await queryAsync(sql);
       const jsonStr = JSON.stringify(result);
       const jsonObj = JSON.parse(jsonStr);
       const userDetailOriginal: UserPostResponse = jsonObj[0];
+      if (userDetailOriginal.avatar != null) {
+        // res.json(updateUser.avatar);
+        const fileUrl = userDetailOriginal.avatar;
+        const fileRef = ref(storage, fileUrl);
+
+        deleteObject(fileRef)
+      }
+
       const updateUser = { ...userDetailOriginal, ...userDetail };
-      
+      // res.json(updateUser.avatar);
+
       sql =
         "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `email` = ?";
+      // res.json(updateUser);
       sql = mysql.format(sql, [
         updateUser.username,
         updateUser.email,
@@ -79,7 +90,7 @@ router.post(
       conn.query(sql, (err, result) => {
         if (err) throw err;
       });
-      ////////////////////////////////////////////////
+      ////////////////////////////////////////////
       res.status(200).json({
         filename: url,
       });
@@ -115,6 +126,24 @@ router.get("/", (req, res) => {
         res.status(400).json({ response: false });
       }
     });
+  }
+});
+
+// Get login
+router.get("/login/:email/:password", async (req, res) => {
+  const email = req.params.email;
+  const password = req.params.password;
+  let sql = "select * from cat_user where email = ?";
+  sql = mysql.format(sql, [email]);
+  const result = await queryAsync(sql);
+  const jsonStr = JSON.stringify(result);
+  const jsonObj = JSON.parse(jsonStr);
+  // res.json(jsonObj[0].password);
+
+  if(password == jsonObj[0].password){
+    res.status(200).json({response: true, status: "Login Success"})
+  }else{
+    res.status(200).json({response: false, status: "Wrong email or password"})
   }
 });
 

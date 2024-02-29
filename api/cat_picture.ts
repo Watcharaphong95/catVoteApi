@@ -12,10 +12,10 @@ router.get("/", (req, res) => {
   conn.query(sql, (err, result) => {
     if (err) throw err;
     if (result != "") {
-        res.status(200).json({ result, response: true });
-      } else {
-        res.status(400).json({ response: false });
-      }
+      res.status(200).json({ result, response: true });
+    } else {
+      res.status(400).json({ response: false });
+    }
   });
 });
 
@@ -29,10 +29,10 @@ router.get("/:uid", (req, res) => {
   conn.query(sql, (err, result) => {
     if (err) throw err;
     if (result != "") {
-        res.status(200).json({ result, response: true });
-      } else {
-        res.status(400).json({ response: false });
-      }
+      res.status(200).json({ result, response: true });
+    } else {
+      res.status(400).json({ response: false });
+    }
   });
 });
 
@@ -52,6 +52,7 @@ import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
+  deleteObject,
 } from "firebase/storage";
 
 initializeApp(firebaseConfig);
@@ -74,7 +75,8 @@ router.post(
   async (req, res) => {
     const email = req.params.email;
     // select for img limit
-    let sqlCheck = "SELECT COUNT(*) as count FROM cat_picture WHERE p_uid IN (SELECT uid FROM cat_user WHERE email = ?)";
+    let sqlCheck =
+      "SELECT COUNT(*) as count FROM cat_picture WHERE p_uid IN (SELECT uid FROM cat_user WHERE email = ?)";
     sqlCheck = mysql.format(sqlCheck, [email]);
     const resultCount = await queryAsync(sqlCheck);
     const countStr = JSON.stringify(resultCount);
@@ -93,7 +95,8 @@ router.post(
         );
         const url = await getDownloadURL(snapshot.ref);
 
-        let sql = "INSERT INTO `cat_picture` (`p_uid`, `picture`) VALUES ((SELECT uid FROM cat_user WHERE email = ?),?)";
+        let sql =
+          "INSERT INTO `cat_picture` (`p_uid`, `picture`) VALUES ((SELECT uid FROM cat_user WHERE email = ?),?)";
         sql = mysql.format(sql, [email, url]);
 
         conn.query(sql, (err, result) => {
@@ -101,9 +104,9 @@ router.post(
         });
         ////////////////////////////////////////////////
         res.status(201).json({
-            response: true,
-            statis: 'Upload complete',
-            filename: url,
+          response: true,
+          statis: "Upload complete",
+          filename: url,
         });
       } catch (error) {
         console.log(error);
@@ -114,3 +117,38 @@ router.post(
     }
   }
 );
+
+router.delete("/delete/:pid", async (req, res) => {
+  const pid = req.params.pid;
+  let sql = "SELECT picture FROM cat_picture WHERE pid = ?";
+  sql = mysql.format(sql, [pid]);
+  const result = await queryAsync(sql);
+  const jsonStr = JSON.stringify(result);
+  const jsonObj = JSON.parse(jsonStr);
+  if (result != "") {
+    const fileUrl = jsonObj[0].picture;
+    const fileRef = ref(storage, fileUrl);
+
+    let sql = 'DELETE FROM cat_picture WHERE pid = ?';
+    sql = mysql.format(sql, [
+        pid,
+    ]);
+    conn.query(sql, (err, result) => {
+        if(err) throw err;
+    });
+
+    deleteObject(fileRef)
+      .then(() => {
+        res
+          .status(200)
+          .json({ response: true, status: "File has been deleted" });
+      })
+      .catch((error) => {
+        res
+          .status(500)
+          .json({ response: false, status: "Fail to delete file" });
+      });
+  } else {
+    res.status(500).json({response: false, status: "No picture found"});
+  }
+});
