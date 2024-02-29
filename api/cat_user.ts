@@ -14,13 +14,21 @@ router.get("/", (req, res) => {
     sql = mysql.format(sql, [email]);
     conn.query(sql, (err, result) => {
       if (err) throw err;
-      res.status(200).json(result);
+      if (result != "") {
+        res.status(200).json({ result, response: true });
+      } else {
+        res.status(400).json({ response: false });
+      }
     });
   } else {
     const sql = "select * from cat_user";
     conn.query(sql, (err, result) => {
       if (err) throw err;
-      res.status(200).json(result);
+      if (result != "") {
+        res.status(200).json({ result, response: true });
+      } else {
+        res.status(400).json({ response: false });
+      }
     });
   }
 });
@@ -32,7 +40,11 @@ router.get("/:id", (req, res) => {
   sql = mysql.format(sql, [id]);
   conn.query(sql, (err, result) => {
     if (err) throw err;
-    res.status(200).json(result);
+    if (result != "") {
+      res.status(200).json({ result, response: true });
+    } else {
+      res.status(400).json({ response: false });
+    }
   });
 });
 
@@ -40,20 +52,32 @@ router.get("/:id", (req, res) => {
 router.post("/", (req, res) => {
   let userDetail: UserPostResponse = req.body;
   let sql =
-    "INSERT INTO `cat_user`(`username`, `email`, `password`, `avatar`) VALUES (?,?,?,?)";
+    "INSERT INTO `cat_user`(`username`, `email`, `password`) VALUES (?,?,?,)";
   sql = mysql.format(sql, [
     userDetail.username,
     userDetail.email,
     userDetail.password,
-    userDetail.avatar,
   ]);
 
-  conn.query(sql, (err, result) => {
+  let sqlCheck = "SELECT * FROM cat_user WHERE email = ?";
+  sqlCheck = mysql.format(sqlCheck, [userDetail.email]);
+
+  conn.query(sqlCheck, (err, result) => {
     if (err) throw err;
-    res.status(201).json({
-      affected_row: result.affectedRows,
-      last_idx: result.insertId,
-    });
+    if (result != "") {
+      res
+      .status(400)
+      .json({ response: false, status: "Email already been used" });
+    } else {
+      conn.query(sql, (err, result) => {
+        if (err) throw err;
+        res.status(201).json({
+          response: true,
+          affected_row: result.affectedRows,
+          last_idx: result.insertId,
+        });
+      });
+    }
   });
 });
 
