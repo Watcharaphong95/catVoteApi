@@ -139,7 +139,7 @@ router.get("/login/:email/:password", async (req, res) => {
   const jsonStr = JSON.stringify(result);
   const jsonObj = JSON.parse(jsonStr);
   if (result != "") {
-    if (password == jsonObj[0].password) {
+    if (password == jsonObj[0].password!) {
       res.status(200).json({ response: true, status: "Login Success" });
     } else {
       res
