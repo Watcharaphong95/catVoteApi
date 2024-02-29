@@ -28,7 +28,7 @@ router.get("/:uid", (req, res) => {
   });
 });
 
-// FIREBASE
+// FIREBASE FOR UPLOAD PICTURE
 const firebaseConfig = {
   apiKey: "AIzaSyDtn6Oh1qWj5QmPecCd4HXV4xjFb-fjeaA",
   authDomain: "catvoteproject.firebaseapp.com",
@@ -66,47 +66,43 @@ router.post(
   "/upload/:email",
   fileUpload.diskLoader.single("file"),
   async (req, res) => {
-    try {
-      const filename = Math.round(Math.random() * 10000) + ".png";
-      const storageRef = ref(storage, "/images/" + filename);
-      const metaData = { contentType: req.file!.mimetype };
-      const snapshot = await uploadBytesResumable(
-        storageRef,
-        req.file!.buffer,
-        metaData
-      );
-      const url = await getDownloadURL(snapshot.ref);
+    const email = req.params.email;
+    // select for img limit
+    let sqlCheck = "SELECT COUNT(*) as count FROM cat_picture WHERE p_uid IN (SELECT uid FROM cat_user WHERE email = ?)";
+    sqlCheck = mysql.format(sqlCheck, [email]);
+    const resultCount = await queryAsync(sqlCheck);
+    const countStr = JSON.stringify(resultCount);
+    const countObj = JSON.parse(countStr);
+    // res.json(countObj[0].count);
 
-      ////////////////////////
-      const email = req.params.email;
-      
-      let sql = "select * from cat_user where email = ?";
-      sql = mysql.format(sql, [email]);
-      const result = await queryAsync(sql);
-      const jsonStr = JSON.stringify(result);
-      const jsonObj = JSON.parse(jsonStr);
-      const userDetailOriginal: UserPostResponseForUID = jsonObj[0];
-      const userDetail: Partial<PicturePostResponse> ={
-        p_uid: userDetailOriginal.uid,
-        picture: url,
-      };
+    if (countObj[0].count < 5) {
+      try {
+        const filename = Math.round(Math.random() * 10000) + ".png";
+        const storageRef = ref(storage, "/images/" + filename);
+        const metaData = { contentType: req.file!.mimetype };
+        const snapshot = await uploadBytesResumable(
+          storageRef,
+          req.file!.buffer,
+          metaData
+        );
+        const url = await getDownloadURL(snapshot.ref);
 
-      sql = "INSERT INTO `cat_picture` (`p_uid`, `picture`) VALUES (?,?)";
-      sql = mysql.format(sql, [
-        userDetail.p_uid,
-        userDetail.picture
-      ]);
+        let sql = "INSERT INTO `cat_picture` (`p_uid`, `picture`) VALUES ((SELECT uid FROM cat_user WHERE email = ?),?)";
+        sql = mysql.format(sql, [email, url]);
 
-      conn.query(sql, (err, result) => {
-        if (err) throw err;
-      });
-      ////////////////////////////////////////////////
-      res.status(200).json({
-        filename: url,
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ response: false, status: "Failed to upload" });
+        conn.query(sql, (err, result) => {
+          if (err) throw err;
+        });
+        ////////////////////////////////////////////////
+        res.status(201).json({
+          filename: url,
+        });
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ response: false, status: "Failed to upload" });
+      }
+    } else {
+      res.status(500).json({ response: false, status: "Limit Upload is 5" });
     }
   }
 );
