@@ -52,7 +52,7 @@ router.get("/:id", (req, res) => {
 router.post("/", (req, res) => {
   let userDetail: UserPostResponse = req.body;
   let sql =
-    "INSERT INTO `cat_user`(`username`, `email`, `password`) VALUES (?,?,?,)";
+    "INSERT INTO `cat_user`(`username`, `email`, `password`) VALUES (?,?,?)";
   sql = mysql.format(sql, [
     userDetail.username,
     userDetail.email,
