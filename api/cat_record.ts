@@ -6,7 +6,7 @@ export const router = express.Router();
 
 // Get all record
 router.get("/", (req, res) => {
-    const sql = 'select DATE_ADD(date, INTERVAL 7 HOUR) from cat_pic_record';
+    const sql = 'select * from cat_pic_record';
 
     conn.query(sql, (err, result) => {
         if(err) throw err;
