@@ -58,7 +58,7 @@ router.get("/yesterday/:pid", (req, res) => {
 });
 
 // POST record when it has been vote(calculate elo rating in here)
-router.post("/vote", async (req, res) => {
+router.get("/vote", async (req, res) => {
   const pid1 = req.query.pid1;
   const pid2 = req.query.pid2;
   const selectPic: any = req.query.selectPid;
