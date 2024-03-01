@@ -44,7 +44,7 @@ router.get("/all/:pid", (req, res) => {
 router.get("/yesterday/:pid", (req, res) => {
   const pid = req.params.pid;
   let sql =
-    'SELECT rid, r_pid, score, DATE_FORMAT(date, "%d-%m-%y") as date FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record, cat_picture, cat_user WHERE cat_pic_record.r_pid = cat_picture.pid AND cat_picture.p_uid = cat_user.uid AND uid = ? GROUP BY r_pid, DATE(date)) AND DATE(date) = CURDATE() - INTERVAL 1 DAY;';
+    'SELECT cat_pic_record.rid, cat_pic_record.r_pid, cat_pic_record.score as old_score, cat_picture.score as cur_score, DATE_FORMAT(cat_pic_record.date, "%d-%m-%y") as date FROM cat_pic_record JOIN cat_picture ON cat_pic_record.r_pid = cat_picture.pid JOIN cat_user ON cat_picture.p_uid = cat_user.uid WHERE cat_user.uid = ? AND DATE(cat_pic_record.date) = CURDATE() - INTERVAL 1 DAY AND (cat_pic_record.r_pid, cat_pic_record.date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY GROUP BY r_pid);';
   sql = mysql.format(sql, [pid]);
 
   conn.query(sql, (err, result) => {
