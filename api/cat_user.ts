@@ -40,7 +40,7 @@ class FileMiddleware {
 
 const fileUpload = new FileMiddleware();
 // POST avatar and replace and delete in firebase
-router.post(
+router.put(
   "/avatar/upload/:email",
   fileUpload.diskLoader.single("file"),
   async (req, res) => {
@@ -62,9 +62,7 @@ router.post(
 
       ////////////////////////
       const email = req.params.email;
-      const userDetail: Partial<UserPostResponse> = {
-        avatar: url,
-      };
+
       let sql = "select * from cat_user where email = ?";
       sql = mysql.format(sql, [email]);
       const result = await queryAsync(sql);
@@ -79,17 +77,16 @@ router.post(
         deleteObject(fileRef);
       }
 
-      const updateUser = { ...userDetailOriginal, ...userDetail };
       // res.json(updateUser.avatar);
 
       sql =
         "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `email` = ?";
       // res.json(updateUser);
       sql = mysql.format(sql, [
-        updateUser.username,
-        updateUser.email,
-        updateUser.password,
-        updateUser.avatar || null,
+        userDetailOriginal.username,
+        userDetailOriginal.email,
+        userDetailOriginal.password,
+        url,
         email,
       ]);
 
