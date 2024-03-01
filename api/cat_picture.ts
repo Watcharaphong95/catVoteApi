@@ -14,7 +14,7 @@ router.get("/", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(400).json({ response: false });
+      res.status(500).json({ response: false });
     }
   });
 });
@@ -31,7 +31,7 @@ router.get("/:uid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(400).json({ response: false });
+      res.status(500).json({ response: false });
     }
   });
 });

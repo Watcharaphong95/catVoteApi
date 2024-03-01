@@ -35,7 +35,7 @@ router.get("/all/:pid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(400).json({ response: false });
+      res.status(500).json({ response: false });
     }
   });
 });
@@ -52,7 +52,7 @@ router.get("/curday/:pid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(400).json({ response: false });
+      res.status(500).json({ response: false });
     }
   });
 });
@@ -69,7 +69,7 @@ router.get("/yesterday/:pid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(400).json({ response: false });
+      res.status(500).json({ response: false });
     }
   });
 });
