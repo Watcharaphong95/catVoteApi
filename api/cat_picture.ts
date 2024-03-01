@@ -263,6 +263,6 @@ router.get("/random/forvote", async (req, res) => {
   const picStr2 = JSON.stringify(pic2);
   const picObj2 = JSON.parse(picStr2);
   let picVote2: PictureGetResponse = picObj2[0];
-  const test = { picVote1, picVote2 };
-  res.json(test);
+  const result = [picVote1, picVote2];
+  res.json({result, response: true});
 });
