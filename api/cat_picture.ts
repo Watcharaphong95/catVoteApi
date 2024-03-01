@@ -21,7 +21,8 @@ router.get("/", (req, res) => {
 
 // Get picture order by score DESC
 router.get("/orderscore", (req, res) => {
-  const sql = "SELECT cat_picture.*, cat_user.username, cat_user.email FROM cat_picture, cat_user WHERE cat_picture.p_uid = cat_user.uid ORDER BY score DESC";
+  const sql =
+    "SELECT cat_picture.*, cat_user.username, cat_user.email FROM cat_picture, cat_user WHERE cat_picture.p_uid = cat_user.uid ORDER BY score DESC LIMIT 10";
 
   conn.query(sql, (err, result) => {
     if (err) throw err;
@@ -154,16 +155,15 @@ router.delete("/delete/:pid", async (req, res) => {
     const fileUrl = jsonObj[0].picture;
     const fileRef = ref(storage, fileUrl);
 
-    let sql = "DELETE FROM cat_picture WHERE pid = ?";
+    let sql = "DELETE FROM cat_pic_record WHERE r_pid = ?";
     sql = mysql.format(sql, [pid]);
     conn.query(sql, (err, result) => {
       if (err) throw err;
-    });
-
-    sql = "DELETE FROM cat_pic_record WHERE r_pid = ?";
-    sql = mysql.format(sql, [pid]);
-    conn.query(sql, (err, result) => {
-      if (err) throw err;
+      sql = "DELETE FROM cat_picture WHERE pid = ?";
+      sql = mysql.format(sql, [pid]);
+      conn.query(sql, (err, result) => {
+        if (err) throw err;
+      });
     });
 
     deleteObject(fileRef)
@@ -206,9 +206,6 @@ router.post(
 
       ////////////////////////
       const pid = req.params.pid;
-      const picDetail: Partial<PicturePostResponse> = {
-        picture: url,
-      };
       let sql = "select * from cat_picture where pid = ?";
       sql = mysql.format(sql, [pid]);
       const result = await queryAsync(sql);
@@ -223,19 +220,18 @@ router.post(
         deleteObject(fileRef);
       }
 
-      const updatePic = { ...picDetailOriginal, ...picDetail };
       // res.json(updateUser.avatar);
 
-      sql = "update `cat_picture` set `p_uid`=?, `picture`=?";
+      sql = "update `cat_picture` set `p_uid`=?, `picture`=?, `score`=? WHERE `pid`=?";
       // res.json(updateUser);
-      sql = mysql.format(sql, [updatePic.p_uid, updatePic.picture]);
+      sql = mysql.format(sql, [picDetailOriginal.p_uid, url, 1000, pid]);
 
       conn.query(sql, (err, result) => {
         if (err) throw err;
       });
 
       sql = "DELETE FROM cat_pic_record WHERE r_pid = ?";
-      sql = mysql.format(sql, [updatePic.p_uid]);
+      sql = mysql.format(sql, [pid]);
       conn.query(sql, (err, result) => {
         if (err) throw err;
       });
