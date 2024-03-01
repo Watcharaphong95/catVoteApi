@@ -19,11 +19,26 @@ router.get("/", (req, res) => {
   });
 });
 
+// Get picture order by score DESC
+router.get("/orderscore", (req, res) => {
+  const sql = "SELECT cat_picture.*, cat_user.username, cat_user.email FROM cat_picture, cat_user WHERE cat_picture.p_uid = cat_user.uid ORDER BY score DESC";
+
+  conn.query(sql, (err, result) => {
+    if (err) throw err;
+    if (result != "") {
+      res.status(200).json({ result, response: true });
+    } else {
+      res.status(200).json({ response: false });
+    }
+  });
+});
+
 // Get picture where uid = xxxx
 router.get("/:uid", (req, res) => {
   const uid = req.params.uid;
 
-  let sql = "SELECT cat_picture.*, cat_pic_record.score AS oldScore FROM cat_picture LEFT JOIN cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rid IN (SELECT rid FROM cat_pic_record WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY AND cat_pic_record.r_pid = cat_picture.pid) WHERE cat_picture.p_uid = 15";
+  let sql =
+    "SELECT cat_picture.*, cat_pic_record.score AS oldScore FROM cat_picture LEFT JOIN cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rid IN (SELECT rid FROM cat_pic_record WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY AND cat_pic_record.r_pid = cat_picture.pid) WHERE cat_picture.p_uid = 15";
   sql = mysql.format(sql, [uid]);
 
   conn.query(sql, (err, result) => {
@@ -140,6 +155,12 @@ router.delete("/delete/:pid", async (req, res) => {
     const fileRef = ref(storage, fileUrl);
 
     let sql = "DELETE FROM cat_picture WHERE pid = ?";
+    sql = mysql.format(sql, [pid]);
+    conn.query(sql, (err, result) => {
+      if (err) throw err;
+    });
+
+    sql = "DELETE FROM cat_pic_record WHERE r_pid = ?";
     sql = mysql.format(sql, [pid]);
     conn.query(sql, (err, result) => {
       if (err) throw err;
