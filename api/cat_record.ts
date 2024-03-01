@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(400).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -35,7 +35,7 @@ router.get("/all/:pid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(500).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -52,7 +52,7 @@ router.get("/curday/:pid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(500).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -69,7 +69,7 @@ router.get("/yesterday/:pid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(500).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -81,7 +81,7 @@ router.post("/vote", async (req, res) => {
   const selectPic: any = req.query.selectPid;
   if (!pid1 || !pid2 || !selectPic || (selectPic != pid1 && selectPic != pid2)) {
     return res
-      .status(500)
+      .status(200)
       .json({ response: false, status: "Parameter not match" });
   }
   let sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";

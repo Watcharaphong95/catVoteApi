@@ -14,7 +14,7 @@ router.get("/", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(500).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -31,7 +31,7 @@ router.get("/:uid", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(500).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -79,7 +79,7 @@ router.post(
   async (req, res) => {
     if (!req.file) {
       return res
-        .status(500)
+        .status(200)
         .json({ response: false, status: "No file Uploaded" });
     }
     const email = req.params.email;
@@ -119,10 +119,10 @@ router.post(
         });
       } catch (error) {
         console.log(error);
-        res.status(500).json({ response: false, status: "Failed to upload" });
+        res.status(200).json({ response: false, status: "Failed to upload" });
       }
     } else {
-      res.status(500).json({ response: false, status: "Limit Upload is 5" });
+      res.status(200).json({ response: false, status: "Limit Upload is 5" });
     }
   }
 );
@@ -153,7 +153,7 @@ router.delete("/delete/:pid", async (req, res) => {
       })
       .catch((error) => {
         res
-          .status(500)
+          .status(200)
           .json({ response: false, status: "Fail to delete file" });
       });
   } else {
@@ -169,7 +169,7 @@ router.post(
   async (req, res) => {
     if (!req.file) {
       return res
-        .status(500)
+        .status(200)
         .json({ response: false, status: "No file Uploaded" });
     }
     try {
@@ -224,7 +224,7 @@ router.post(
       });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ response: false, status: "Failed to upload" });
+      res.status(200).json({ response: false, status: "Failed to upload" });
     }
   }
 );

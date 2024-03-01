@@ -119,7 +119,7 @@ router.get("/", (req, res) => {
       if (result != "") {
         res.status(200).json({ result, response: true });
       } else {
-        res.status(500).json({ response: false });
+        res.status(200).json({ response: false });
       }
     });
   } else {
@@ -129,7 +129,7 @@ router.get("/", (req, res) => {
       if (result != "") {
         res.status(200).json({ result, response: true });
       } else {
-        res.status(500).json({ response: false });
+        res.status(200).json({ response: false });
       }
     });
   }
@@ -169,7 +169,7 @@ router.get("/:id", (req, res) => {
     if (result != "") {
       res.status(200).json({ result, response: true });
     } else {
-      res.status(500).json({ response: false });
+      res.status(200).json({ response: false });
     }
   });
 });
@@ -211,7 +211,7 @@ router.post("/", (req, res) => {
       }
     });
   } else {
-    res.status(500).json({ response: true, status: "Fill not complete" });
+    res.status(200).json({ response: true, status: "Fill not complete" });
   }
 });
 
