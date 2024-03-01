@@ -44,7 +44,7 @@ router.get("/all/:pid", (req, res) => {
 router.get("/yesterday/:pid", (req, res) => {
   const pid = req.params.pid;
   let sql =
-    'SELECT cat_pic_record.rid, cat_pic_record.r_pid, cat_pic_record.score as old_score, cat_picture.score as cur_score, DATE_FORMAT(cat_pic_record.date, "%d-%m-%y") as date, cat_picture.picture FROM cat_pic_record JOIN cat_picture ON cat_pic_record.r_pid = cat_picture.pid JOIN cat_user ON cat_picture.p_uid = cat_user.uid WHERE cat_user.uid = 15 AND DATE(cat_pic_record.date) = CURDATE() - INTERVAL 1 DAY AND (cat_pic_record.r_pid, cat_pic_record.date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY GROUP BY r_pid)';
+    "SELECT cat_picture.*, cat_pic_record.score as oldScore from cat_picture, cat_pic_record where cat_picture.pid = cat_pic_record.r_pid AND rid IN (SELECT rid FROM `cat_pic_record` WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY)";
   sql = mysql.format(sql, [pid]);
 
   conn.query(sql, (err, result) => {
@@ -62,7 +62,12 @@ router.post("/vote", async (req, res) => {
   const pid1 = req.query.pid1;
   const pid2 = req.query.pid2;
   const selectPic: any = req.query.selectPid;
-  if (!pid1 || !pid2 || !selectPic || (selectPic != pid1 && selectPic != pid2)) {
+  if (
+    !pid1 ||
+    !pid2 ||
+    !selectPic ||
+    (selectPic != pid1 && selectPic != pid2)
+  ) {
     return res
       .status(200)
       .json({ response: false, status: "Parameter not match" });
@@ -102,10 +107,12 @@ router.post("/vote", async (req, res) => {
   } else {
     w2 = 1;
   }
-  picDetailOriginal1.score =
-    Math.round(picDetailOriginal1.score + 20 * (w1 - scoreResult1));
-  picDetailOriginal2.score =
-    Math.round(picDetailOriginal2.score + 20 * (w2 - scoreResult2));
+  picDetailOriginal1.score = Math.round(
+    picDetailOriginal1.score + 20 * (w1 - scoreResult1)
+  );
+  picDetailOriginal2.score = Math.round(
+    picDetailOriginal2.score + 20 * (w2 - scoreResult2)
+  );
 
   sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`) VALUES(?,?)";
   sql = mysql.format(sql, [picDetailOriginal1.pid, picDetailOriginal1.score]);
@@ -154,10 +161,48 @@ router.post("/vote", async (req, res) => {
 
   conn.query(sql);
 
-  res.status(201).json({response: true,equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
-                        pic1: "score = " + scoreResult1 + "  from equationScore = 1 / ((1 + 10^("+score2 + " - " + score1 +") / 400))",
-                        pic2: "score = " + scoreResult2 + "  from equationScore = 1 / ((1 + 10^("+score1 + " - " + score2 +") / 400))",
-                        equationRating: "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
-                        rating1: "newRating = " + picDetailOriginal1.score + "  from equationRating = "+ score1 + " + 20 * ("+ w1 +" - "+ scoreResult1 + ")",
-                        rating2: "newRating = " + picDetailOriginal2.score + "  from equationRating = "+ score2 + " + 20 * ("+ w2 +" - "+ scoreResult2 + ")",});
+  res
+    .status(201)
+    .json({
+      response: true,
+      equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
+      pic1:
+        "score = " +
+        scoreResult1 +
+        "  from equationScore = 1 / ((1 + 10^(" +
+        score2 +
+        " - " +
+        score1 +
+        ") / 400))",
+      pic2:
+        "score = " +
+        scoreResult2 +
+        "  from equationScore = 1 / ((1 + 10^(" +
+        score1 +
+        " - " +
+        score2 +
+        ") / 400))",
+      equationRating:
+        "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
+      rating1:
+        "newRating = " +
+        picDetailOriginal1.score +
+        "  from equationRating = " +
+        score1 +
+        " + 20 * (" +
+        w1 +
+        " - " +
+        scoreResult1 +
+        ")",
+      rating2:
+        "newRating = " +
+        picDetailOriginal2.score +
+        "  from equationRating = " +
+        score2 +
+        " + 20 * (" +
+        w2 +
+        " - " +
+        scoreResult2 +
+        ")",
+    });
 });
