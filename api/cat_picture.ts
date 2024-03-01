@@ -54,7 +54,10 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { PicturePostResponse } from "../model/picturePostResponse";
+import {
+  PictureGetResponse,
+  PicturePostResponse,
+} from "../model/picturePostResponse";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();
@@ -202,24 +205,18 @@ router.post(
       const updatePic = { ...picDetailOriginal, ...picDetail };
       // res.json(updateUser.avatar);
 
-      sql =
-        "update `cat_picture` set `p_uid`=?, `picture`=?";
+      sql = "update `cat_picture` set `p_uid`=?, `picture`=?";
       // res.json(updateUser);
-      sql = mysql.format(sql, [
-        updatePic.p_uid,
-        updatePic.picture
-      ]);
+      sql = mysql.format(sql, [updatePic.p_uid, updatePic.picture]);
 
       conn.query(sql, (err, result) => {
         if (err) throw err;
       });
 
-      sql = 'DELETE FROM cat_pic_record WHERE r_pid = ?';
-      sql = mysql.format(sql, [
-        updatePic.p_uid,
-      ]);
+      sql = "DELETE FROM cat_pic_record WHERE r_pid = ?";
+      sql = mysql.format(sql, [updatePic.p_uid]);
       conn.query(sql, (err, result) => {
-        if(err) throw err;
+        if (err) throw err;
       });
       ////////////////////////////////////////////
       res.status(200).json({
@@ -233,11 +230,22 @@ router.post(
 );
 
 // Get random pid for main page to vote
-router.get("/random/forvote", (req, res) => {
-    let sql = 'select * FROM cat_picture ORDER BY RAND() LIMIT 2';
-    
-    conn.query(sql, (err, result) => {
-        if(err) throw err;
-        res.json({response: true, result})
-    });
+router.get("/random/forvote", async (req, res) => {
+  // let sql = 'select * FROM cat_picture ORDER BY RAND() LIMIT 2';
+  let sql = "SELECT * FROM cat_picture ORDER BY RAND() LIMIT 1";
+  const pic1 = await queryAsync(sql);
+  const picStr1 = JSON.stringify(pic1);
+  const picObj1 = JSON.parse(picStr1);
+  const picVote1: PictureGetResponse = picObj1[0];
+  // res.json(picVote1);
+
+  sql =
+    "SELECT * FROM (SELECT * FROM cat_picture WHERE pid != ? ORDER BY ABS(score - ?) LIMIT 3) AS subquery ORDER BY RAND() LIMIT 1";
+  sql = mysql.format(sql, [picVote1.pid, picVote1.score]);
+  const pic2 = await queryAsync(sql);
+  const picStr2 = JSON.stringify(pic2);
+  const picObj2 = JSON.parse(picStr2);
+  let picVote2: PictureGetResponse = picObj2[0];
+  const test = { picVote1, picVote2 };
+  res.json(test);
 });
