@@ -79,20 +79,11 @@ router.post("/vote", async (req, res) => {
   const pid1 = req.query.pid1;
   const pid2 = req.query.pid2;
   const selectPic: any = req.query.selectPid;
-  if (!pid1 || !pid2 || !selectPic) {
+  if (!pid1 || !pid2 || !selectPic || (selectPic != pid1 && selectPic != pid2)) {
     return res
       .status(500)
       .json({ response: false, status: "Parameter not match" });
   }
-  //   let str =
-  //     pid1?.toString() + " " + pid2?.toString() + " " + selectPid?.toString();
-
-  //   if (pid1 == selectPid) {
-  //     res.json("pid1");
-  //   } else if (pid2 == selectPid) {
-  //     res.json("pid2");
-  //   }
-
   let sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";
   sql = mysql.format(sql, [pid1, pid2]);
   const result = await queryAsync(sql);
@@ -102,53 +93,46 @@ router.post("/vote", async (req, res) => {
   const picDetailOriginal2: PictureGetResponse = jsonObj[1];
   // let str = picDetailOriginal1.pid.toString() +"  "+ picDetailOriginal2.pid.toString();
   // res.json(selectPic);
+  const score1 = picDetailOriginal1.score;
+  const score2 = picDetailOriginal2.score;
 
+  let scoreResult1 =
+    1 /
+    (1 +
+      Math.pow(
+        10,
+        (picDetailOriginal2.score - picDetailOriginal1.score) / 400
+      ));
+  let scoreResult2 =
+    1 /
+    (1 +
+      Math.pow(
+        10,
+        (picDetailOriginal1.score - picDetailOriginal2.score) / 400
+      ));
+  scoreResult1 = Math.round(scoreResult1 * 100) / 100;
+  scoreResult2 = Math.round(scoreResult2 * 100) / 100;
+  let w1 = 0,
+    w2 = 0;
   if (picDetailOriginal1.pid == selectPic) {
-    let scoreResult =
-      1 /
-      (1 +
-        Math.pow(
-          10,
-          (picDetailOriginal2.score - picDetailOriginal1.score) / 400
-        ));
-    picDetailOriginal1.score = Math.round(
-      picDetailOriginal1.score + 30 * (1 - scoreResult)
-    );
-    picDetailOriginal2.score = Math.round(
-      picDetailOriginal2.score + 30 * (0 - scoreResult)
-    );
-    // res.json("equal 1");
-  } else if (picDetailOriginal2.pid == selectPic) {
-    let scoreResult =
-      1 /
-      (1 +
-        Math.pow(
-          10,
-          (picDetailOriginal2.score - picDetailOriginal1.score) / 400
-        ));
-    picDetailOriginal1.score = Math.round(
-      picDetailOriginal1.score + 30 * (0 - scoreResult)
-    );
-    picDetailOriginal2.score = Math.round(
-      picDetailOriginal2.score + 30 * (1 - scoreResult)
-    );
-    // res.json("equal 2");
+    w1 = 1;
   } else {
-    return res
-      .status(500)
-      .json({ response: false, status: "parameter not match" });
+    w2 = 1;
   }
-  // res.json(picDetailOriginal1);
+  picDetailOriginal1.score =
+    Math.round(picDetailOriginal1.score + 20 * (w1 - scoreResult1));
+  picDetailOriginal2.score =
+    Math.round(picDetailOriginal2.score + 20 * (w2 - scoreResult2));
 
   sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`) VALUES(?,?)";
   sql = mysql.format(sql, [picDetailOriginal1.pid, picDetailOriginal1.score]);
-  const record1 = await queryAsync(sql);
+  conn.query(sql);
 
   sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`) VALUES(?,?)";
   sql = mysql.format(sql, [picDetailOriginal2.pid, picDetailOriginal2.score]);
-  const record2 = await queryAsync(sql);
+  conn.query(sql);
 
-//   PIC 1
+  //   PIC 1
   sql = "SELECT * FROM cat_picture WHERE pid = ?";
   sql = mysql.format(sql, [picDetailOriginal1.pid]);
   const tempPic1 = await queryAsync(sql);
@@ -156,41 +140,41 @@ router.post("/vote", async (req, res) => {
   const tempObj1 = JSON.parse(tempStr1);
   const picDetailTemp1: PictureGetResponse = tempObj1[0];
 
-  const updatePic1 = { ...picDetailTemp1, ... picDetailOriginal1}
+  const updatePic1 = { ...picDetailTemp1, ...picDetailOriginal1 };
 
   sql = "UPDATE `cat_picture` SET `picture`=?, `score`=? WHERE pid = ?";
   sql = mysql.format(sql, [
-        updatePic1.picture,
-        updatePic1.score,
-        updatePic1.pid
+    updatePic1.picture,
+    updatePic1.score,
+    updatePic1.pid,
   ]);
 
-  conn.query(sql, (err, result) => {
-    if (err) throw err;
-  });
+  conn.query(sql);
 
-//   PIC 2
+  //   PIC 2
 
-sql = "SELECT * FROM cat_picture WHERE pid = ?";
+  sql = "SELECT * FROM cat_picture WHERE pid = ?";
   sql = mysql.format(sql, [picDetailOriginal2.pid]);
   const tempPic2 = await queryAsync(sql);
   const tempStr2 = JSON.stringify(tempPic2);
   const tempObj2 = JSON.parse(tempStr2);
   const picDetailTemp2: PictureGetResponse = tempObj2[0];
 
-  const updatePic2 = { ...picDetailTemp2, ... picDetailOriginal2}
+  const updatePic2 = { ...picDetailTemp2, ...picDetailOriginal2 };
 
   sql = "UPDATE `cat_picture` set `picture`=?, `score`=? WHERE pid = ?";
   sql = mysql.format(sql, [
-        updatePic2.picture,
-        updatePic2.score,
-        updatePic2.pid
+    updatePic2.picture,
+    updatePic2.score,
+    updatePic2.pid,
   ]);
 
-  conn.query(sql, (err, result) => {
-    if (err) throw err;
-  });
+  conn.query(sql);
 
-  res.status(201).json({ response: true, status: "score had been recorded" });
-  //
+  res.status(201).json({response: true,equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
+                        pic1: "score = " + scoreResult1 + "  from equationScore = 1 / ((1 + 10^("+score2 + " - " + score1 +") / 400))",
+                        pic2: "score = " + scoreResult2 + "  from equationScore = 1 / ((1 + 10^("+score1 + " - " + score2 +") / 400))",
+                        equationRating: "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
+                        rating1: "newRating = " + picDetailOriginal1.score + "  from equationRating = "+ score1 + " + 20 * ("+ w1 +" - "+ scoreResult1 + ")",
+                        rating2: "newRating = " + picDetailOriginal2.score + "  from equationRating = "+ score2 + " + 20 * ("+ w2 +" - "+ scoreResult2 + ")",});
 });
