@@ -40,28 +40,11 @@ router.get("/all/:pid", (req, res) => {
   });
 });
 
-// Get record this day
-router.get("/curday/:uid", (req, res) => {
-  const uid = req.params.uid;
-  let sql =
-    'SELECT rid, r_pid, score, DATE_FORMAT(date, "%d-%m-%y") as date FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record, cat_picture, cat_user WHERE cat_pic_record.r_pid = cat_picture.pid AND cat_picture.p_uid = cat_user.uid AND uid = ? GROUP BY r_pid)';
-  sql = mysql.format(sql, [uid]);
-
-  conn.query(sql, (err, result) => {
-    if (err) throw err;
-    if (result != "") {
-      res.status(200).json({ result, response: true });
-    } else {
-      res.status(200).json({ response: false });
-    }
-  });
-});
-
 // Get record yesterday
 router.get("/yesterday/:pid", (req, res) => {
   const pid = req.params.pid;
   let sql =
-    'SELECT rid, r_pid, score, DATE_FORMAT(date, "%d-%m-%y") as date FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE r_pid = ? GROUP BY r_pid, DATE(date)) AND DATE(date) = CURDATE() - INTERVAL 1 DAY;';
+    'SELECT rid, r_pid, score, DATE_FORMAT(date, "%d-%m-%y") as date FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record, cat_picture, cat_user WHERE cat_pic_record.r_pid = cat_picture.pid AND cat_picture.p_uid = cat_user.uid AND uid = ? GROUP BY r_pid, DATE(date)) AND DATE(date) = CURDATE() - INTERVAL 1 DAY;';
   sql = mysql.format(sql, [pid]);
 
   conn.query(sql, (err, result) => {
