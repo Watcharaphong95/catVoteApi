@@ -120,7 +120,7 @@ router.get("/", (req, res) => {
       }
     });
   } else {
-    const sql = "select * from cat_user";
+    const sql = "select * from cat_user where uid != 1";
     conn.query(sql, (err, result) => {
       if (err) throw err;
       if (result != "") {
