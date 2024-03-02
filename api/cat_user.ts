@@ -120,7 +120,7 @@ router.get("/", (req, res) => {
       }
     });
   } else {
-    const sql = "select * from cat_user where uid != 1";
+    const sql = "select * from cat_user where type != 'admin'";
     conn.query(sql, (err, result) => {
       if (err) throw err;
       if (result != "") {
