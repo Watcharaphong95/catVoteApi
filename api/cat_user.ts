@@ -24,6 +24,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import { DelayPostResponse } from "../model/recordDelatGetResponse";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();
@@ -246,8 +247,9 @@ router.put("/:email", async (req, res) => {
 
 ////////////////////////////////// ADMIN ZONE //////////////////////////////////////////////
 // PUT record that has been vote fot x second(x is value then send by admin to limit vote)
-router.put("/timedelay/:second", async (req, res) => {
-  const second = req.params.second;
+router.put("/timedelay/set", async (req, res) => {
+  const delay: DelayPostResponse = req.body;
+  // res.json(delay.delay);
   let sql = "select * from cat_user where type = 'admin'";
 
   const tempAdminData = await queryAsync(sql);
@@ -261,7 +263,7 @@ router.put("/timedelay/:second", async (req, res) => {
     adminData.username,
     adminData.email,
     adminData.password,
-    second,
+    delay.delay,
     "admin",
   ]);
 

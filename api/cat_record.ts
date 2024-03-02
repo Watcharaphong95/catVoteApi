@@ -9,6 +9,7 @@ import { UserPostResponse } from "../model/userPostResponse";
 import {
   VoteLastGetResponse,
   VoteLastGetResponseDelayData,
+  VotePostResponse,
 } from "../model/recordDelatGetResponse";
 
 export const router = express.Router();
@@ -63,10 +64,11 @@ router.get("/yesterday/:pid", (req, res) => {
 });
 
 // POST record when it has been vote(calculate elo rating in here)
-router.get("/vote", async (req, res) => {
-  const pid1 = req.query.pid1;
-  const pid2 = req.query.pid2;
-  const selectPic: any = req.query.selectPid;
+router.post("/vote", async (req, res) => {
+  const body: VotePostResponse = req.body;
+  const pid1 = body.pid1;
+  const pid2 = body.pid2;
+  const selectPic: any = body.selectPic;
   if (
     !pid1 ||
     !pid2 ||
@@ -86,7 +88,7 @@ router.get("/vote", async (req, res) => {
 
   // SELECT lastest pid that has been vote
   sql =
-    "SELECT r_pid FROM `cat_pic_record` WHERE `date` > (NOW() - INTERVAL ? SECOND)";
+    "SELECT r_pid FROM `cat_pic_record` WHERE `date` > (NOW() - INTERVAL ? SECOND) AND result = 1";
   sql = mysql.format(sql, [adminData.avatar]);
   const tempDelayData = await queryAsync(sql);
   const jsonDelayStr = JSON.stringify(tempDelayData);
@@ -149,12 +151,12 @@ router.get("/vote", async (req, res) => {
     picDetailOriginal2.score + 20 * (w2 - scoreResult2)
   );
 
-  sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`) VALUES(?,?)";
-  sql = mysql.format(sql, [picDetailOriginal1.pid, picDetailOriginal1.score]);
+  sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`, `result`) VALUES(?,?,?)";
+  sql = mysql.format(sql, [picDetailOriginal1.pid, picDetailOriginal1.score, w1]);
   conn.query(sql);
 
-  sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`) VALUES(?,?)";
-  sql = mysql.format(sql, [picDetailOriginal2.pid, picDetailOriginal2.score]);
+  sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`, `result`) VALUES(?,?,?)";
+  sql = mysql.format(sql, [picDetailOriginal2.pid, picDetailOriginal2.score, w2]);
   conn.query(sql);
 
   //   PIC 1
