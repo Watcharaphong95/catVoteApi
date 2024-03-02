@@ -5,6 +5,11 @@ import {
   PictureGetResponse,
   PicturePostResponse,
 } from "../model/picturePostResponse";
+import { UserPostResponse } from "../model/userPostResponse";
+import {
+  VoteLastGetResponse,
+  VoteLastGetResponseDelayData,
+} from "../model/recordDelatGetResponse";
 
 export const router = express.Router();
 
@@ -57,6 +62,32 @@ router.get("/yesterday/:pid", (req, res) => {
   });
 });
 
+// GET record that has been vote fot x second(x is value then send by admin to limit vote)
+router.put("/vote/timedelay/:second", async (req, res) => {
+  const second = req.params.second;
+  let sql = "select * from cat_user where type = 'admin'";
+
+  const tempAdminData = await queryAsync(sql);
+  const jsonTemp = JSON.stringify(tempAdminData);
+  const jsonObj = JSON.parse(jsonTemp);
+  const adminData: UserPostResponse = jsonObj[0];
+
+  sql =
+    "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `type`=?";
+  sql = mysql.format(sql, [
+    adminData.username,
+    adminData.email,
+    adminData.password,
+    second,
+    "admin",
+  ]);
+
+  conn.query(sql, (err, result) => {
+    if (err) throw err;
+    res.status(200).json({ affected_row: result.affectedRows, response: true });
+  });
+});
+
 // POST record when it has been vote(calculate elo rating in here)
 router.get("/vote", async (req, res) => {
   const pid1 = req.query.pid1;
@@ -72,7 +103,37 @@ router.get("/vote", async (req, res) => {
       .status(200)
       .json({ response: false, status: "Parameter not match" });
   }
-  let sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";
+
+  let sql = "select * from cat_user where type = 'admin'";
+  const tempAdminData = await queryAsync(sql);
+  const jsonAdminStr = JSON.stringify(tempAdminData);
+  const jsonAdminObj = JSON.parse(jsonAdminStr);
+  const adminData: UserPostResponse = jsonAdminObj[0];
+
+  // SELECT lastest pid that has been vote
+  sql =
+    "SELECT r_pid FROM `cat_pic_record` WHERE `date` > (NOW() - INTERVAL ? SECOND)";
+  sql = mysql.format(sql, [adminData.avatar]);
+  const tempDelayData = await queryAsync(sql);
+  const jsonDelayStr = JSON.stringify(tempDelayData);
+  const jsonDelayObj = JSON.parse(jsonDelayStr);
+  const delayData = [];
+
+  // push all pid in to delayData;
+  for(let i = 0;i < jsonDelayObj.length; i++){
+    delayData.push(jsonDelayObj[i].r_pid);
+  }
+
+  // check if selectPic == lastest Pic?
+  for(let i = 0;i < delayData.length; i++){
+    // res.json(delayData[0]);
+
+    if(delayData[i] == selectPic){
+      return res.status(200).json({response: false,status: "Cant vote same Pic for "+adminData.avatar+" second"});
+    }
+  }
+
+  sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";
   sql = mysql.format(sql, [pid1, pid2]);
   const result = await queryAsync(sql);
   const jsonStr = JSON.stringify(result);
@@ -161,48 +222,46 @@ router.get("/vote", async (req, res) => {
 
   conn.query(sql);
 
-  res
-    .status(201)
-    .json({
-      response: true,
-      equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
-      pic1:
-        "score = " +
-        scoreResult1 +
-        "  from equationScore = 1 / ((1 + 10^(" +
-        score2 +
-        " - " +
-        score1 +
-        ") / 400))",
-      pic2:
-        "score = " +
-        scoreResult2 +
-        "  from equationScore = 1 / ((1 + 10^(" +
-        score1 +
-        " - " +
-        score2 +
-        ") / 400))",
-      equationRating:
-        "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
-      rating1:
-        "newRating = " +
-        picDetailOriginal1.score +
-        "  from equationRating = " +
-        score1 +
-        " + 20 * (" +
-        w1 +
-        " - " +
-        scoreResult1 +
-        ")",
-      rating2:
-        "newRating = " +
-        picDetailOriginal2.score +
-        "  from equationRating = " +
-        score2 +
-        " + 20 * (" +
-        w2 +
-        " - " +
-        scoreResult2 +
-        ")",
-    });
+  res.status(201).json({
+    response: true,
+    equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
+    pic1:
+      "score = " +
+      scoreResult1 +
+      "  from equationScore = 1 / ((1 + 10^(" +
+      score2 +
+      " - " +
+      score1 +
+      ") / 400))",
+    pic2:
+      "score = " +
+      scoreResult2 +
+      "  from equationScore = 1 / ((1 + 10^(" +
+      score1 +
+      " - " +
+      score2 +
+      ") / 400))",
+    equationRating:
+      "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
+    rating1:
+      "newRating = " +
+      picDetailOriginal1.score +
+      "  from equationRating = " +
+      score1 +
+      " + 20 * (" +
+      w1 +
+      " - " +
+      scoreResult1 +
+      ")",
+    rating2:
+      "newRating = " +
+      picDetailOriginal2.score +
+      "  from equationRating = " +
+      score2 +
+      " + 20 * (" +
+      w2 +
+      " - " +
+      scoreResult2 +
+      ")",
+  });
 });
