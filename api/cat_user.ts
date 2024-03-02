@@ -243,3 +243,30 @@ router.put("/:email", async (req, res) => {
     });
   });
 });
+
+////////////////////////////////// ADMIN ZONE //////////////////////////////////////////////
+// PUT record that has been vote fot x second(x is value then send by admin to limit vote)
+router.put("/timedelay/:second", async (req, res) => {
+  const second = req.params.second;
+  let sql = "select * from cat_user where type = 'admin'";
+
+  const tempAdminData = await queryAsync(sql);
+  const jsonTemp = JSON.stringify(tempAdminData);
+  const jsonObj = JSON.parse(jsonTemp);
+  const adminData: UserPostResponse = jsonObj[0];
+
+  sql =
+    "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `type`=?";
+  sql = mysql.format(sql, [
+    adminData.username,
+    adminData.email,
+    adminData.password,
+    second,
+    "admin",
+  ]);
+
+  conn.query(sql, (err, result) => {
+    if (err) throw err;
+    res.status(200).json({ affected_row: result.affectedRows, response: true });
+  });
+});
