@@ -33,7 +33,7 @@ router.get("/all/:pid", (req, res) => {
   const pid = req.params.pid;
   // add rid to select for check if want to
   let sql =
-    'SELECT r_pid, score, DATE_FORMAT(date, "%d-%m-%y") as date FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE r_pid = 35 GROUP BY r_pid, DATE(date)) ORDER BY DATE(date) LIMIT 7;';
+    'SELECT r_pid, score, DATE_FORMAT(date, "%d-%m-%y") as date FROM cat_pic_record WHERE (r_pid, date) IN (SELECT r_pid, MAX(date) AS max_date FROM cat_pic_record WHERE r_pid = ? GROUP BY r_pid, DATE(date)) ORDER BY DATE(date) LIMIT 7;';
   sql = mysql.format(sql, [pid]);
 
   conn.query(sql, (err, result) => {
