@@ -66,9 +66,12 @@ router.get("/yesterday/:pid", (req, res) => {
 // POST record when it has been vote(calculate elo rating in here)
 router.post("/vote", async (req, res) => {
   const body: VotePostResponse = req.body;
-  const pid1 = body.pid1;
-  const pid2 = body.pid2;
-  const selectPic: any = body.selectPic;
+  let pid1: any = '';
+  let pid2: any = '';
+  let selectPic: any = '';
+  pid1 = body.pid1;
+  pid2 = body.pid2;
+  selectPic = body.selectPic;
   if (
     !pid1 ||
     !pid2 ||
