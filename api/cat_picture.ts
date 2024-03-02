@@ -39,7 +39,7 @@ router.get("/:uid", (req, res) => {
   const uid = req.params.uid;
 
   let sql =
-    "SELECT cat_picture.*, cat_pic_record.score AS oldScore FROM cat_picture LEFT JOIN cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rid IN (SELECT rid FROM cat_pic_record WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY AND cat_pic_record.r_pid = cat_picture.pid) WHERE cat_picture.p_uid = ?";
+    "SELECT cat_picture.*, cat_pic_record.score as oldScore, cat_pic_record.date as date FROM cat_picture JOIN ( SELECT r_pid, MAX(date) as max_date FROM cat_pic_record WHERE DATE(date) = (CURDATE() - INTERVAL 1 DAY) GROUP BY r_pid ) latest_dates ON cat_picture.pid = latest_dates.r_pid JOIN cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.date = latest_dates.max_date WHERE cat_picture.p_uid = ?";
   sql = mysql.format(sql, [uid]);
 
   conn.query(sql, (err, result) => {
