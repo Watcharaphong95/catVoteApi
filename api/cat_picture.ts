@@ -34,6 +34,24 @@ router.get("/orderscore", (req, res) => {
   });
 });
 
+// Get picture where pid = xxxx
+router.get("/single/:pid", (req, res) => {
+  const pid = req.params.pid;
+
+  let sql = "SELECT * FROM cat_picture WHERE pid = ?";
+  sql = mysql.format(sql, [
+    pid
+  ]);
+  conn.query(sql, (err, result) => {
+    if(err) throw err;
+    if (result != "") {
+      res.status(200).json({ result, response: true });
+    } else {
+      res.status(200).json({ response: false });
+    }
+  });
+});
+
 // Get picture where uid = xxxx
 router.get("/:uid", (req, res) => {
   const uid = req.params.uid;
