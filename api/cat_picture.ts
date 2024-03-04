@@ -265,7 +265,28 @@ router.post(
 );
 
 // Get random pid for main page to vote
-router.get("/random/forvote/:uid", async (req, res) => {
+router.get("/random/forvote", async (req, res) => {
+  // let sql = 'select * FROM cat_picture ORDER BY RAND() LIMIT 2';
+  let sql = "SELECT cat_picture.*, cat_user.username as username, cat_user.avatar as avatar FROM cat_picture, cat_user WHERE cat_picture.p_uid = cat_user.uid ORDER BY RAND() LIMIT 1";
+  const pic1 = await queryAsync(sql);
+  const picStr1 = JSON.stringify(pic1);
+  const picObj1 = JSON.parse(picStr1);
+  const picVote1: PictureGetResponse = picObj1[0];
+  // res.json(picVote1);
+
+  sql =
+    "SELECT * FROM (SELECT cat_picture.*, cat_user.username as username, cat_user.avatar as avatar FROM cat_picture, cat_user WHERE cat_picture.p_uid = cat_user.uid AND pid != ? ORDER BY ABS(score - ?) LIMIT 3) AS subquery ORDER BY RAND() LIMIT 1";
+  sql = mysql.format(sql, [picVote1.pid, picVote1.score]);
+  const pic2 = await queryAsync(sql);
+  const picStr2 = JSON.stringify(pic2);
+  const picObj2 = JSON.parse(picStr2);
+  let picVote2: PictureGetResponse = picObj2[0];
+  const result = [picVote1, picVote2];
+  res.json({result, response: true});
+});
+
+// GET random pic not in uid
+router.get("/random/forvote/user/:uid", async (req, res) => {
   const uid = req.params.uid;
   // let sql = 'select * FROM cat_picture ORDER BY RAND() LIMIT 2';
   let sql = "SELECT cat_picture.*, cat_user.username as username, cat_user.avatar as avatar FROM cat_picture, cat_user WHERE cat_picture.p_uid = cat_user.uid AND cat_user.uid != ? ORDER BY RAND() LIMIT 1";
