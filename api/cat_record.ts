@@ -43,7 +43,7 @@ router.get("/all/:pid", (req, res) => {
 router.get("/yesterday/:pid", (req, res) => {
   const pid = req.params.pid;
   let sql =
-    "SELECT cat_picture.*, cat_pic_record.score as oldScore, cat_pic_record.date, cat_pic_record.rid from cat_picture, cat_pic_record where cat_picture.pid = cat_pic_record.r_pid AND rid IN (SELECT rid FROM `cat_pic_record` WHERE DATE(date) < CURDATE() - INTERVAL 1 DAY AND r_pid = ?) ORDER BY rid DESC LIMIT 1";
+    "SELECT cat_picture.*, cat_pic_record.score as oldScore from cat_picture, cat_pic_record where cat_picture.pid = cat_pic_record.r_pid AND rid IN (SELECT rid FROM `cat_pic_record` WHERE DATE(date) < CURDATE() - INTERVAL 1 DAY AND r_pid = ?) ORDER BY rid DESC LIMIT 1";
   sql = mysql.format(sql, [pid]);
 
   conn.query(sql, (err, result) => {
