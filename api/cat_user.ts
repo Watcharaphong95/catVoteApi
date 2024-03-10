@@ -24,7 +24,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { DelayPostResponse } from "../model/recordDelatGetResponse";
+import { DelayPostResponse } from "../model/recordDelayGetResponse";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();

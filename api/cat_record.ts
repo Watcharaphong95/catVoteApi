@@ -1,16 +1,9 @@
 import express from "express";
 import { conn, queryAsync } from "../dbconnect";
 import mysql from "mysql";
-import {
-  PictureGetResponse,
-  PicturePostResponse,
-} from "../model/picturePostResponse";
+import { PictureGetResponse } from "../model/picturePostResponse";
 import { UserPostResponse } from "../model/userPostResponse";
-import {
-  VoteLastGetResponse,
-  VoteLastGetResponseDelayData,
-  VotePostResponse,
-} from "../model/recordDelatGetResponse";
+import { VotePostResponse } from "../model/recordDelayGetResponse";
 
 export const router = express.Router();
 
@@ -66,16 +59,19 @@ router.get("/yesterday/:pid", (req, res) => {
 // POST record when it has been vote(calculate elo rating in here)
 router.post("/vote", async (req, res) => {
   const body: VotePostResponse = req.body;
-  let pid1: any = '';
-  let pid2: any = '';
-  let selectPic: any = '';
+  let pid1: any = "";
+  let pid2: any = "";
+  let selectPic: any = "";
+  let uid: any = "";
   pid1 = body.pid1;
   pid2 = body.pid2;
   selectPic = body.selectPic;
+  uid = body.uid;
   if (
     !pid1 ||
     !pid2 ||
     !selectPic ||
+    !uid ||
     (selectPic != pid1 && selectPic != pid2)
   ) {
     return res
@@ -91,27 +87,34 @@ router.post("/vote", async (req, res) => {
 
   // SELECT lastest pid that has been vote
   sql =
-    "SELECT r_pid FROM `cat_pic_record` WHERE `date` > (NOW() - INTERVAL ? SECOND) AND result = 1";
-  sql = mysql.format(sql, [adminData.avatar]);
+    "SELECT r_pid FROM `cat_pic_record` WHERE `date` > (NOW() - INTERVAL ? SECOND) AND result = ? AND r_uid = ?";
+  sql = mysql.format(sql, [adminData.avatar, 1, uid]);
   const tempDelayData = await queryAsync(sql);
   const jsonDelayStr = JSON.stringify(tempDelayData);
   const jsonDelayObj = JSON.parse(jsonDelayStr);
   const delayData = [];
+  // console.log(jsonDelayObj);
+  
 
   // push all pid in to delayData;
-  for(let i = 0;i < jsonDelayObj.length; i++){
+  for (let i = 0; i < jsonDelayObj.length; i++) {
     delayData.push(jsonDelayObj[i].r_pid);
   }
 
   // check if selectPic == lastest Pic?
-  for(let i = 0;i < delayData.length; i++){
+  for (let i = 0; i < delayData.length; i++) {
     // res.json(delayData[0]);
 
-    if(delayData[i] == selectPic){
-      return res.status(200).json({response: false,status: "Cant vote same Pic for "+adminData.avatar+" second"});
+    if (delayData[i] == selectPic) {
+      return res.status(200).json({
+        response: false,
+        status: "Cant vote same Pic for " + adminData.avatar + " second",
+      });
     }
   }
 
+  // console.log(pid1, pid2, uid);
+  
   sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";
   sql = mysql.format(sql, [pid1, pid2]);
   const result = await queryAsync(sql);
@@ -154,12 +157,24 @@ router.post("/vote", async (req, res) => {
     picDetailOriginal2.score + 20 * (w2 - scoreResult2)
   );
 
-  sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`, `result`) VALUES(?,?,?)";
-  sql = mysql.format(sql, [picDetailOriginal1.pid, picDetailOriginal1.score, w1]);
+  sql =
+    "INSERT INTO `cat_pic_record` (`r_pid`, `score`, `result`, `r_uid`) VALUES(?,?,?,?)";
+  sql = mysql.format(sql, [
+    picDetailOriginal1.pid,
+    picDetailOriginal1.score,
+    w1,
+    uid,
+  ]);
   conn.query(sql);
 
-  sql = "INSERT INTO `cat_pic_record` (`r_pid`, `score`, `result`) VALUES(?,?,?)";
-  sql = mysql.format(sql, [picDetailOriginal2.pid, picDetailOriginal2.score, w2]);
+  sql =
+    "INSERT INTO `cat_pic_record` (`r_pid`, `score`, `result`, `r_uid`) VALUES(?,?,?,?)";
+  sql = mysql.format(sql, [
+    picDetailOriginal2.pid,
+    picDetailOriginal2.score,
+    w2,
+    uid,
+  ]);
   conn.query(sql);
 
   //   PIC 1
