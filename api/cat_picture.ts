@@ -22,7 +22,7 @@ router.get("/", (req, res) => {
 // Get picture order by score DESC
 router.get("/orderscore", (req, res) => {
   const sql =
-    "SELECT cat_picture.*, cat_pic_record.score AS oldScore, cat_user.username, cat_user.email FROM cat_picture JOIN ( SELECT r_pid, score, ROW_NUMBER() OVER (PARTITION BY r_pid ORDER BY date DESC) AS rn FROM cat_pic_record WHERE DATE(date) < CURDATE() ) AS cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rn = 1 JOIN cat_user ON cat_picture.p_uid = cat_user.uid ORDER BY cat_picture.score DESC";
+    "SELECT cat_picture.*, COALESCE(cat_pic_record.score, cat_picture.score) AS oldScore, cat_user.username, cat_user.email FROM cat_picture LEFT JOIN ( SELECT r_pid, score, ROW_NUMBER() OVER (PARTITION BY r_pid ORDER BY date DESC) AS rn FROM cat_pic_record WHERE DATE(date) = CURDATE() - INTERVAL 1 DAY ) AS cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rn = 1 JOIN cat_user ON cat_picture.p_uid = cat_user.uid ORDER BY cat_picture.score DESC";
 
   conn.query(sql, (err, result) => {
     if (err) throw err;
@@ -66,22 +66,22 @@ router.get("/single/:pid", (req, res) => {
 });
 
 // Get picture where uid = xxxx
-router.get("/:uid", (req, res) => {
-  const uid = req.params.uid;
+// router.get("/:uid", (req, res) => {
+//   const uid = req.params.uid;
 
-  let sql =
-    "SELECT cat_picture.*, cat_pic_record.score AS oldScore FROM cat_picture JOIN ( SELECT r_pid, score, ROW_NUMBER() OVER (PARTITION BY r_pid ORDER BY date DESC) AS rn FROM cat_pic_record WHERE DATE(date) < CURDATE() ) AS cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rn = 1 WHERE cat_picture.p_uid = ? ORDER BY cat_picture.score DESC";
-  sql = mysql.format(sql, [uid]);
+//   let sql =
+//     "SELECT cat_picture.*, cat_pic_record.score AS oldScore FROM cat_picture JOIN ( SELECT r_pid, score, ROW_NUMBER() OVER (PARTITION BY r_pid ORDER BY date DESC) AS rn FROM cat_pic_record WHERE DATE(date) < CURDATE() ) AS cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rn = 1 WHERE cat_picture.p_uid = ? ORDER BY cat_picture.score DESC";
+//   sql = mysql.format(sql, [uid]);
 
-  conn.query(sql, (err, result) => {
-    if (err) throw err;
-    if (result != "") {
-      res.status(200).json({ result, response: true });
-    } else {
-      res.status(200).json({ response: false });
-    }
-  });
-});
+//   conn.query(sql, (err, result) => {
+//     if (err) throw err;
+//     if (result != "") {
+//       res.status(200).json({ result, response: true });
+//     } else {
+//       res.status(200).json({ response: false });
+//     }
+//   });
+// });
 
 // FIREBASE FOR UPLOAD PICTURE
 const firebaseConfig = {
