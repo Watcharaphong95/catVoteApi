@@ -70,7 +70,7 @@ router.get("/:uid", (req, res) => {
   const uid = req.params.uid;
 
   let sql =
-    "SELECT cat_picture.*, cat_pic_record.score AS oldScore, cat_user.username, cat_user.email FROM cat_picture JOIN ( SELECT r_pid, score, ROW_NUMBER() OVER (PARTITION BY r_pid ORDER BY date DESC) AS rn FROM cat_pic_record WHERE DATE(date) < CURDATE() ) AS cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rn = 1 JOIN cat_user ON cat_picture.p_uid = cat_user.uid WHERE p_uid = ? ORDER BY cat_picture.score DESC";
+    "SELECT cat_picture.*, cat_pic_record.score AS oldScore FROM cat_picture JOIN ( SELECT r_pid, score, ROW_NUMBER() OVER (PARTITION BY r_pid ORDER BY date DESC) AS rn FROM cat_pic_record WHERE DATE(date) < CURDATE() ) AS cat_pic_record ON cat_picture.pid = cat_pic_record.r_pid AND cat_pic_record.rn = 1 WHERE cat_picture.p_uid = ? ORDER BY cat_picture.score DESC";
   sql = mysql.format(sql, [uid]);
 
   conn.query(sql, (err, result) => {
