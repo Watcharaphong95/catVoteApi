@@ -11,7 +11,14 @@ export interface VotePostResponse {
   pid1: number;
   pid2: number;
   selectPic: number;
-  uid: number;
+  uid: number | null;
+}
+
+export interface VoteNotLoginPostResponse {
+  pid1: number;
+  pid2: number;
+  selectPic: number;
+  uid: null;
 }
 
 export interface DelayPostResponse {
