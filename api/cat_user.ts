@@ -308,26 +308,27 @@ router.put("/:email", async (req, res) => {
   const userDetailOriginal: UserPostResponse = jsonObj[0];
 
   const updateUser = { ...userDetailOriginal, ...userDetail };
-  let hashPassword: any;
-  bcrypt.hash(updateUser.password, 10, function(err, hash){
-     hashPassword = hash
-  }),
- 
 
-  sql =
-    "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `email` = ?";
-  sql = mysql.format(sql, [
-    updateUser.username,
-    updateUser.email,
-    hashPassword,
-    updateUser.avatar || null,
-    email,
-  ]);
-
-  conn.query(sql, (err, result) => {
+  bcrypt.hash(updateUser.password, 10, function (err, hash) {
     if (err) throw err;
-    res.status(201).json({
-      affected_row: result.affectedRows,
+    updateUser.password = hash;
+
+    sql =
+      "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `email` = ?";
+    sql = mysql.format(sql, [
+      updateUser.username,
+      updateUser.email,
+      updateUser.password,
+      updateUser.avatar || null,
+      email,
+    ]);
+    // console.log(updateUser.password);
+
+    conn.query(sql, (err, result) => {
+      if (err) throw err;
+      res.status(201).json({
+        affected_row: result.affectedRows,
+      });
     });
   });
 });
