@@ -308,15 +308,18 @@ router.put("/:email", async (req, res) => {
   const userDetailOriginal: UserPostResponse = jsonObj[0];
 
   const updateUser = { ...userDetailOriginal, ...userDetail };
+  let hashPassword: any;
+  bcrypt.hash(updateUser.password, 10, function(err, hash){
+     hashPassword = hash
+  }),
+ 
 
   sql =
     "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `email` = ?";
   sql = mysql.format(sql, [
     updateUser.username,
     updateUser.email,
-    bcrypt.hash(updateUser.password, 10, function(err, hash){
-      hash
-    }),
+    hashPassword,
     updateUser.avatar || null,
     email,
   ]);
