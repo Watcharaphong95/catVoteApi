@@ -12,13 +12,6 @@ export const router = express.Router();
 router.post("/send-email", (req, res) => {
   let userDetail: UserPostResponse = req.body;
 
-  const password = userDetail.password;
-  const saltRounds = 10;
-  bcrypt.hash(password, saltRounds, function(err, hash) {
-    if(err) throw err;
-    userDetail.password = hash;
-  });
-
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -61,17 +54,23 @@ router.post("/send-email", (req, res) => {
 
 router.get("/verify/:token", (req, res) => {
   const token = req.params.token;
-
   jwt.verify(token, "ourSecretKey", function (err, decoded) {
     if (err) {
       console.log(err);
       res.send(
         "Email verification failed, possibly the link is invalid or expired"
       );
-    }else{
-      const userDetail = (decoded as { userDetail: UserPostResponse }).userDetail;
-      res.send({ result: true, userDetail});
-      console.log(userDetail);
+    } else {
+      const userDetail = (decoded as { userDetail: UserPostResponse })
+        .userDetail;
+      const saltRounds = 10;
+      bcrypt.hash(userDetail.password, saltRounds, function (err, hash) {
+        if (err) throw err;
+        userDetail.password = hash;
+        console.log(userDetail.password);
+        res.send({ result: true, userDetail });
+      });
+      // console.log(userDetail);
     }
   });
 });
@@ -206,13 +205,11 @@ router.get("/", (req, res) => {
 // Get Admin Delay Time
 router.get("/delay", (req, res) => {
   let sql = "select avatar from cat_user where type = ?";
-  sql = mysql.format(sql, [
-    "admin",
-  ])
+  sql = mysql.format(sql, ["admin"]);
 
   conn.query(sql, (err, result) => {
-    if(err) throw err;
-    res.status(200).json(result)
+    if (err) throw err;
+    res.status(200).json(result);
   });
 });
 
