@@ -3,8 +3,70 @@ import { conn, queryAsync } from "../dbconnect";
 import mysql from "mysql";
 import { UserPostResponse } from "../model/userPostResponse";
 import multer from "multer";
-
+import nodemailer from "nodemailer";
+import { v4 as uuid } from "uuid";
+import jwt from "jsonwebtoken";
 export const router = express.Router();
+
+// TEST CONFIRM EMAIL //
+router.post("/send-email", (req, res) => {
+  let userDetail: UserPostResponse = req.body;
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "65011212077@msu.ac.th",
+      pass: "wwqu zlri pwld vdef",
+    },
+  });
+
+  const token = jwt.sign(
+    {
+      userDetail: userDetail,
+      data: "Token Data",
+    },
+    "ourSecretKey",
+    { expiresIn: "10m" }
+  );
+
+  const mailConfigurations = {
+    // It should be a string of sender/server email
+    from: "65011212077@msu.ac.th",
+
+    to: userDetail.email,
+
+    // Subject of Email
+    subject: "Email Verification",
+
+    // This would be the text of email body
+    text: `Hi! There, You have recently visited  
+           our website and entered your email. 
+           Please follow the given link to verify your email 
+           https://catvoteproject.web.app/verify/${token}
+           Thanks`,
+  };
+
+  transporter.sendMail(mailConfigurations, function (error, info) {
+    if (error) throw error;
+    res.status(200).json(info);
+  });
+});
+
+router.get("/verify/:token", (req, res) => {
+  const token = req.params.token;
+
+  jwt.verify(token, "ourSecretKey", function (err, decoded) {
+    if (err) {
+      console.log(err);
+      res.send(
+        "Email verification failed, possibly the link is invalid or expired"
+      );
+    }else{
+      const userDetail = (decoded as { userDetail: UserPostResponse }).userDetail;
+      res.send({ result: true, userDetail});
+      console.log(userDetail);
+    }
+  });
+});
 
 // FIREBASE
 const firebaseConfig = {
