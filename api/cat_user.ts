@@ -5,7 +5,7 @@ import { UserPostResponse } from "../model/userPostResponse";
 import multer from "multer";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt, { hash } from "bcrypt";
 export const router = express.Router();
 
 //CONFIRM EMAIL//
@@ -314,7 +314,9 @@ router.put("/:email", async (req, res) => {
   sql = mysql.format(sql, [
     updateUser.username,
     updateUser.email,
-    updateUser.password,
+    bcrypt.hash(updateUser.password, 10, function(err, hash){
+      hash
+    }),
     updateUser.avatar || null,
     email,
   ]);
