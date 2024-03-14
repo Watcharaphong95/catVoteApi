@@ -4,11 +4,10 @@ import mysql from "mysql";
 import { UserPostResponse } from "../model/userPostResponse";
 import multer from "multer";
 import nodemailer from "nodemailer";
-import { v4 as uuid } from "uuid";
 import jwt from "jsonwebtoken";
 export const router = express.Router();
 
-// TEST CONFIRM EMAIL //
+//CONFIRM EMAIL//
 router.post("/send-email", (req, res) => {
   let userDetail: UserPostResponse = req.body;
   const transporter = nodemailer.createTransport({
@@ -193,6 +192,19 @@ router.get("/", (req, res) => {
       }
     });
   }
+});
+
+// Get Admin Delay Time
+router.get("/delay", (req, res) => {
+  let sql = "select avatar from cat_user where type = ?";
+  sql = mysql.format(sql, [
+    "admin",
+  ])
+
+  conn.query(sql, (err, result) => {
+    if(err) throw err;
+    res.status(200).json(result)
+  });
 });
 
 // Get login

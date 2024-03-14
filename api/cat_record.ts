@@ -66,7 +66,7 @@ router.post("/vote", async (req, res) => {
   pid1 = body.pid1;
   pid2 = body.pid2;
   selectPic = body.selectPic;
-  uid = body.uid || "";
+  uid = body.uid || null;
   if (
     !pid1 ||
     !pid2 ||
@@ -275,7 +275,7 @@ router.post("/voteNotLogin", async (req, res) => {
   pid1 = body.pid1;
   pid2 = body.pid2;
   selectPic = body.selectPic;
-  uid = body.uid || "";
+  uid = body.uid || null;
   if (
     !pid1 ||
     !pid2 ||
@@ -286,44 +286,8 @@ router.post("/voteNotLogin", async (req, res) => {
       .status(200)
       .json({ response: false, status: "Parameter not match" });
   }
-
-  let sql = "select * from cat_user where type = 'admin'";
-  const tempAdminData = await queryAsync(sql);
-  const jsonAdminStr = JSON.stringify(tempAdminData);
-  const jsonAdminObj = JSON.parse(jsonAdminStr);
-  const adminData: UserPostResponse = jsonAdminObj[0];
-
-  // SELECT lastest pid that has been vote
-  sql =
-    "SELECT r_pid FROM `cat_pic_record` WHERE `date` > (NOW() - INTERVAL ? SECOND) AND result = ? AND r_uid = ?";
-  sql = mysql.format(sql, [adminData.avatar, 1, uid]);
-  const tempDelayData = await queryAsync(sql);
-  const jsonDelayStr = JSON.stringify(tempDelayData);
-  const jsonDelayObj = JSON.parse(jsonDelayStr);
-  const delayData = [];
-  // console.log(jsonDelayObj);
   
-
-  // push all pid in to delayData;
-  for (let i = 0; i < jsonDelayObj.length; i++) {
-    delayData.push(jsonDelayObj[i].r_pid);
-  }
-
-  // check if selectPic == lastest Pic?
-  for (let i = 0; i < delayData.length; i++) {
-    // res.json(delayData[0]);
-
-    if (delayData[i] == selectPic) {
-      return res.status(200).json({
-        response: false,
-        status: "Cant vote same Pic for " + adminData.avatar + " second",
-      });
-    }
-  }
-
-  // console.log(pid1, pid2, uid);
-  
-  sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";
+  let sql = "SELECT * FROM cat_picture WHERE pid = ? OR pid = ?";
   sql = mysql.format(sql, [pid1, pid2]);
   const result = await queryAsync(sql);
   const jsonStr = JSON.stringify(result);
