@@ -5,11 +5,20 @@ import { UserPostResponse } from "../model/userPostResponse";
 import multer from "multer";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 export const router = express.Router();
 
 //CONFIRM EMAIL//
 router.post("/send-email", (req, res) => {
   let userDetail: UserPostResponse = req.body;
+
+  const password = userDetail.password;
+  const saltRounds = 10;
+  bcrypt.hash(password, saltRounds, function(err, hash) {
+    if(err) throw err;
+    userDetail.password = hash;
+  });
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
