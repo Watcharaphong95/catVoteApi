@@ -67,7 +67,7 @@ router.get("/verify/:token", (req, res) => {
       bcrypt.hash(userDetail.password, saltRounds, function (err, hash) {
         if (err) throw err;
         userDetail.password = hash;
-        console.log(userDetail.password);
+        // console.log(userDetail.password);
         res.send({ result: true, userDetail });
       });
       // console.log(userDetail);
