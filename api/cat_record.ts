@@ -219,7 +219,8 @@ router.post("/vote", async (req, res) => {
     response: true,
     equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
     pic1:
-      "score = " +
+      "pid:" + updatePic1.pid +
+      "  score = " +
       scoreResult1 +
       "  from equationScore = 1 / ((1 + 10^(" +
       score2 +
@@ -227,7 +228,8 @@ router.post("/vote", async (req, res) => {
       score1 +
       ") / 400))",
     pic2:
-      "score = " +
+      "pid:" + updatePic2.pid +
+      "  score = " +
       scoreResult2 +
       "  from equationScore = 1 / ((1 + 10^(" +
       score1 +
@@ -392,7 +394,8 @@ router.post("/voteNotLogin", async (req, res) => {
     response: true,
     equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
     pic1:
-      "score = " +
+      "pid:" + updatePic1.pid +
+      "  score = " +
       scoreResult1 +
       "  from equationScore = 1 / ((1 + 10^(" +
       score2 +
@@ -400,7 +403,8 @@ router.post("/voteNotLogin", async (req, res) => {
       score1 +
       ") / 400))",
     pic2:
-      "score = " +
+      "pid:" + updatePic2.pid +
+      "  score = " +
       scoreResult2 +
       "  from equationScore = 1 / ((1 + 10^(" +
       score1 +
