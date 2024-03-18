@@ -217,47 +217,57 @@ router.post("/vote", async (req, res) => {
 
   res.status(201).json({
     response: true,
-    equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
-    pic1:
-      "pid:" + updatePic1.pid +
-      "  score = " +
-      scoreResult1 +
-      "  from equationScore = 1 / ((1 + 10^(" +
-      score2 +
-      " - " +
-      score1 +
-      ") / 400))",
-    pic2:
-      "pid:" + updatePic2.pid +
-      "  score = " +
-      scoreResult2 +
-      "  from equationScore = 1 / ((1 + 10^(" +
-      score1 +
-      " - " +
-      score2 +
-      ") / 400))",
-    equationRating:
-      "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
-    rating1:
-      "newRating = " +
-      picDetailOriginal1.score +
-      "  from equationRating = " +
-      score1 +
-      " + 20 * (" +
-      w1 +
-      " - " +
-      scoreResult1 +
-      ")",
-    rating2:
-      "newRating = " +
-      picDetailOriginal2.score +
-      "  from equationRating = " +
-      score2 +
-      " + 20 * (" +
-      w2 +
-      " - " +
-      scoreResult2 +
-      ")",
+    pid1: updatePic1.pid,
+    pid2: updatePic2.pid,
+    picScoreOriginal1: picDetailOriginal1.score,
+    picScoreOriginal2: picDetailOriginal2.score,
+    scoreResult1: scoreResult1,
+    scoreResult2: scoreResult2,
+    score1: score1,
+    score2: score2,
+    picResult1: w1,
+    picResult2: w2,
+    // equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
+    // pic1:
+    //   "pid:" + updatePic1.pid +
+    //   "  score = " +
+    //   scoreResult1 +
+    //   "  from equationScore = 1 / ((1 + 10^(" +
+    //   score2 +
+    //   " - " +
+    //   score1 +
+    //   ") / 400))",
+    // pic2:
+    //   "pid:" + updatePic2.pid +
+    //   "  score = " +
+    //   scoreResult2 +
+    //   "  from equationScore = 1 / ((1 + 10^(" +
+    //   score1 +
+    //   " - " +
+    //   score2 +
+    //   ") / 400))",
+    // equationRating:
+    //   "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
+    // rating1:
+    //   "newRating = " +
+    //   picDetailOriginal1.score +
+    //   "  from equationRating = " +
+    //   score1 +
+    //   " + 20 * (" +
+    //   w1 +
+    //   " - " +
+    //   scoreResult1 +
+    //   ")",
+    // rating2:
+    //   "newRating = " +
+    //   picDetailOriginal2.score +
+    //   "  from equationRating = " +
+    //   score2 +
+    //   " + 20 * (" +
+    //   w2 +
+    //   " - " +
+    //   scoreResult2 +
+    //   ")",
   });
 });
 
@@ -392,46 +402,56 @@ router.post("/voteNotLogin", async (req, res) => {
 
   res.status(201).json({
     response: true,
-    equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
-    pic1:
-      "pid:" + updatePic1.pid +
-      "  score = " +
-      scoreResult1 +
-      "  from equationScore = 1 / ((1 + 10^(" +
-      score2 +
-      " - " +
-      score1 +
-      ") / 400))",
-    pic2:
-      "pid:" + updatePic2.pid +
-      "  score = " +
-      scoreResult2 +
-      "  from equationScore = 1 / ((1 + 10^(" +
-      score1 +
-      " - " +
-      score2 +
-      ") / 400))",
-    equationRating:
-      "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
-    rating1:
-      "newRating = " +
-      picDetailOriginal1.score +
-      "  from equationRating = " +
-      score1 +
-      " + 20 * (" +
-      w1 +
-      " - " +
-      scoreResult1 +
-      ")",
-    rating2:
-      "newRating = " +
-      picDetailOriginal2.score +
-      "  from equationRating = " +
-      score2 +
-      " + 20 * (" +
-      w2 +
-      " - " +
-      scoreResult2 +
-      ")",
+    pid1: updatePic1.pid,
+    pid2: updatePic2.pid,
+    picScoreOriginal1: picDetailOriginal1.score,
+    picScoreOriginal2: picDetailOriginal2.score,
+    scoreResult1: scoreResult1,
+    scoreResult2: scoreResult2,
+    score1: score1,
+    score2: score2,
+    picResult1: w1,
+    picResult2: w2,
+    // equationScore: "1 / ((1 + 10^(score2 - score1) / 400))",
+    // pic1:
+    //   "pid:" + updatePic1.pid +
+    //   "  score = " +
+    //   scoreResult1 +
+    //   "  from equationScore = 1 / ((1 + 10^(" +
+    //   score2 +
+    //   " - " +
+    //   score1 +
+    //   ") / 400))",
+    // pic2:
+    //   "pid:" + updatePic2.pid +
+    //   "  score = " +
+    //   scoreResult2 +
+    //   "  from equationScore = 1 / ((1 + 10^(" +
+    //   score1 +
+    //   " - " +
+    //   score2 +
+    //   ") / 400))",
+    // equationRating:
+    //   "oldRating + K(In this case we use 20) * (win=1:lose=0 - score)",
+    // rating1:
+    //   "newRating = " +
+    //   picDetailOriginal1.score +
+    //   "  from equationRating = " +
+    //   score1 +
+    //   " + 20 * (" +
+    //   w1 +
+    //   " - " +
+    //   scoreResult1 +
+    //   ")",
+    // rating2:
+    //   "newRating = " +
+    //   picDetailOriginal2.score +
+    //   "  from equationRating = " +
+    //   score2 +
+    //   " + 20 * (" +
+    //   w2 +
+    //   " - " +
+    //   scoreResult2 +
+    //   ")",
   });
 });
