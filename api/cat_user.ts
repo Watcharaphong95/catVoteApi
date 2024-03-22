@@ -239,6 +239,7 @@ router.get("/login/:email/:password", async (req, res) => {
   }
 });
 
+
 // Get user by id
 router.get("/:id", (req, res) => {
   const id = req.params.id;
@@ -311,7 +312,10 @@ router.put("/:email", async (req, res) => {
 
   bcrypt.hash(updateUser.password, 10, function (err, hash) {
     if (err) throw err;
-    updateUser.password = hash;
+    
+    if(userDetail.password){
+      updateUser.password = hash;
+    }
 
     sql =
       "update `cat_user` set `username`=?, `email`=?, `password`=?, `avatar`=? where `email` = ?";
